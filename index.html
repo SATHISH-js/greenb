@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoBuild India - Green Building Consultant</title>
+    
+    <!-- Tailwind CSS for Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              stone: {
+                50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4', 300: '#d6d3d1',
+                400: '#a8a29e', 500: '#78716c', 600: '#57534e', 700: '#44403c',
+                800: '#292524', 900: '#1c1917',
+              },
+              green: {
+                50: '#f0fdf4', 100: '#dcfce7', 200: '#bbf7d0', 300: '#86efac',
+                400: '#4ade80', 500: '#22c55e', 600: '#16a34a', 700: '#15803d',
+                800: '#166534', 900: '#14532d',
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Custom CSS for Animations & Hidden Scrollbars -->
+    <style>
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-in { animation: fade-in 0.5s ease-out forwards; }
+
+      /* Infinite No-Stop Marquee Animations */
+      @keyframes marquee-left {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      @keyframes marquee-right {
+        0% { transform: translateX(-50%); }
+        100% { transform: translateX(0); }
+      }
+      .animate-marquee-left {
+        animation: marquee-left 40s linear infinite;
+      }
+      .animate-marquee-right {
+        animation: marquee-right 40s linear infinite;
+      }
+      .marquee-container:hover .animate-marquee-left,
+      .marquee-container:hover .animate-marquee-right {
+        animation-play-state: paused;
+      }
+    </style>
+
+    <!-- React, ReactDOM, and Babel -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Phosphor Icons -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css" />
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/fill/style.css" />
+</head>
+<body class="bg-stone-50 font-sans text-stone-800 selection:bg-green-200 selection:text-green-900">
+    
+    <!-- React Root -->
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- ICON HELPER COMPONENTS ---
+        const Icon = ({ name, size = 24, className = "" }) => <i className={`ph ph-${name} ${className}`} style={{ fontSize: size }}></i>;
+        const IconFill = ({ name, size = 24, className = "" }) => <i className={`ph-fill ph-${name} ${className}`} style={{ fontSize: size }}></i>;
+
+        // --- TRANSLATIONS & CHATBOT KNOWLEDGE BASE ---
+        const translations = {
+          en: {
+            appTitle: "EcoBuild India",
+            consultant: "Green Building Consultant",
+            tabs: ["Home", "Services", "Materials", "Projects", "Contact"], 
+            
+            heroTitle: "Building a Sustainable Future in India",
+            heroSub: "Expert consultancy for eco-friendly, cost-effective, and energy-efficient construction. Reduce your carbon footprint today.",
+            whyGreenTitle: "Why Choose Green Buildings?",
+            whyGreenDesc: "Conventional buildings are a major contributor to global warming. By shifting to sustainable practices, we reduce embodied energy, lower life cycle costs, and create healthier living environments.",
+            benefits: ["Environmental Benefits", "Economical Benefits", "Health & Social Benefits", "Reduced Carbon Emissions"],
+            homeProjectsTitle: "Inspiring Green Architecture",
+            homeMaterialsTitle: "Innovating with Eco-Materials",
+
+            servicesTitle: "Our Comprehensive Consultancy Services",
+            servicesSub: "From conceptualization to final certification, we provide end-to-end solutions to make your building environmentally responsible and economically profitable.",
+            service1Title: "Green Building Rating Systems",
+            service1Desc: "Complete assistance in achieving top-tier sustainability certifications for your new or existing structures. We manage the complex documentation and point system evaluations.",
+            service1Features: ["Expertise in GRIHA, LEED, BREEAM, & GREEN STAR.", "Pre-assessment and differential weightage analysis.", "Carbon Footprint & Global Warming Potential assessment.", "Integrated Life Cycle Design of Materials & Structures."],
+            service2Title: "Passive Solar Heating & Cooling",
+            service2Desc: "Advanced architectural design strategies to maintain thermal comfort using natural energy, significantly reducing dependency on mechanical HVAC systems.",
+            service2Features: ["Utility of solar energy for low-energy cooling.", "Design of natural ventilation & thermal mass layouts.", "Case study-backed passive heating and cooling models.", "Integration of Zero-Energy concepts & daylighting."],
+            service3Title: "Cost-Effective Building Technologies",
+            service3Desc: "Implementation of alternate, environmentally friendly construction methods that dramatically lower initial capital costs while minimizing environmental impact.",
+            service3Features: ["Wall alternatives: Rat Trap Bond, Flemish Bond, Cavity Walls.", "Roofing systems: Filler Slabs, Composite Beams & Panels.", "Use of Ferro Cement & Stabilized Mud Blocks.", "Waste reduction and recycling of plastics, concrete, & steel."],
+
+            packagesTitle: "Construction Packages & Price Estimator",
+            packagesSub: "Adjust the budget slider to discover the eco-friendly materials and building technologies available for your price range.",
+            budgetLabel: "Set Your Budget (₹ per sq.ft):",
+            budgetPrice: "₹",
+            packages: [
+              { min: 1900, max: 2399, name: "Basic Eco-Build", badge: "Cost-Effective", desc: "Ideal for low-budget residential projects looking to take their first step towards sustainability.", materials: ["Fly Ash Bricks", "Stabilized Mud Blocks (SMB)", "Lime Pozzolana Cement blend", "Locally sourced Laterite stone"], tech: ["Rat Trap Bond for walls (saves 25% bricks)", "Basic roof-top Rainwater Harvesting", "Natural Cross-Ventilation design"] },
+              { min: 2400, max: 2999, name: "Advanced Sustainable", badge: "Most Popular", desc: "A perfect balance of modern green technology and cost-efficiency. Pays for itself within 5-8 years.", materials: ["AAC Blocks for superior insulation", "Filler Slabs for roofing", "Gypsum Board partitions", "Bamboo structural composites"], tech: ["Passive Solar Cooling & Heating", "Solar Water Heating System", "Greywater Recycling (Root Zone)"] },
+              { min: 3000, max: 5000, name: "Premium Net-Zero", badge: "LEED/GRIHA Ready", desc: "Ultimate sustainability. Aims for zero carbon emissions and complete water-positive status.", materials: ["Ferro Cement Components", "Green Concrete & Recycled Steel", "Low-Emissivity (Low-E) Glass", "FSC-certified Recycled Wood"], tech: ["Full Solar PV System (Off-grid capable)", "Radiant Cooling & Earth Air Tunnels", "Zero-Water Discharge System", "Smart BMS & Daylight Sensors"] }
+            ],
+
+            materialsTitle: "Eco-Friendly Materials & 2026 Estimated Costs",
+            materialsDesc: "Green building isn't just an environmental choice; it's a smart financial investment. Here are current average costs in India (Tier 1 & 2 cities).",
+            costConstructionTitle: "Overall Construction Cost Premium",
+            costConstructionDesc: "A standard mid-range home costs ₹1,900 - ₹2,500/sq.ft. A green home costs ₹2,200 - ₹2,900/sq.ft. The 10-18% upfront premium pays for itself in 5-8 years through energy and water savings.",
+            materialItems: [
+              { title: "AAC Blocks & Light Weight Beams", desc: "Autoclaved Aerated Concrete blocks are lightweight, precast, foam concrete building materials.", price: "₹40–₹55 / block", img: "https://images.unsplash.com/photo-1621252179027-94459d278660?auto=format&fit=crop&w=600&q=80", fullDesc: "AAC is a highly thermally insulating concrete-based material used for both internal and external construction. In addition to its insulating capability, one of its advantages in construction is its quick and easy installation.", strengths: ["Excellent thermal insulation", "60% lighter than red bricks, reducing structural steel needs", "Highly fire-resistant", "Faster construction time"], weaknesses: ["Requires specialized thin-bed mortar", "Lower load-bearing capacity than solid concrete", "Prone to cracking if foundation settles"] },
+              { title: "Solar PV Panels", desc: "Highly affordable renewable energy source. Integral part of utility of solar energy in buildings.", price: "₹1.5–₹2 Lakh / 3kW", img: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=600&q=80", fullDesc: "Solar photovoltaics convert sunlight directly into electricity. Modern panels are highly efficient and are a core component for achieving Net-Zero energy status in any green building.", strengths: ["Generates free, renewable electricity", "Drastically reduces carbon footprint", "Long lifespan (25+ years)", "Government subsidies available"], weaknesses: ["High initial upfront cost", "Power generation depends on weather/sunlight", "Requires roof space and battery storage for off-grid"] },
+              { title: "Rainwater Harvesting & Tanks", desc: "Roof-top collection, filtration, and underground sump storage using Ferro Cement or concrete.", price: "₹30k–₹80k total", img: "https://images.unsplash.com/photo-1521106047353-7b70bc815b81?auto=format&fit=crop&w=600&q=80", fullDesc: "RWH is the accumulation and storage of rainwater for reuse on-site, rather than allowing it to run off. It provides an independent water supply and helps recharge local groundwater levels.", strengths: ["Reduces reliance on municipal water", "Excellent for non-potable uses (flushing, gardening)", "Prevents urban flooding and soil erosion"], weaknesses: ["Requires regular maintenance/cleaning of filters", "Initial installation cost for large underground sumps", "Storage capacity is limited by available space"] },
+              { title: "Fly Ash & Stabilized Mud Blocks", desc: "Eco-friendly alternative utilizing industrial waste and local soil, with near-zero premium over red brick.", price: "₹5–₹8 / brick", img: "https://images.unsplash.com/photo-1580211797285-3bcbd69165b4?auto=format&fit=crop&w=600&q=80", fullDesc: "Fly ash bricks utilize the byproduct of coal power plants, reducing industrial waste. Stabilized Mud Blocks (SMB) use local soil compressed with a small amount of cement, practically eliminating transport emissions.", strengths: ["Utilizes industrial waste (Fly Ash) or local soil (SMB)", "No top-soil depletion (unlike red bricks)", "High compressive strength", "Uniform shape saves mortar"], weaknesses: ["Fly ash quality can vary based on source", "SMBs are heavy and labor-intensive to produce onsite", "Not suitable for highly damp foundation walls"] },
+              { title: "Bamboo & Fiber Composites", desc: "Highly renewable, high tensile strength substitute for steel and wood in structural elements.", price: "₹80–₹150 / pole", img: "https://images.unsplash.com/photo-1533038590840-1cbea976a473?auto=format&fit=crop&w=600&q=80", fullDesc: "Bamboo is one of the fastest-growing plants on earth. When treated correctly, it has a tensile strength comparable to steel, making it a revolutionary, low-cost structural material for roofs, scaffolding, and reinforcement.", strengths: ["Incredibly fast renewable resource", "Extremely high tensile strength to weight ratio", "Absorbs large amounts of CO2 during growth", "Low embodied energy"], weaknesses: ["Highly susceptible to termites and rot if not chemically treated", "Irregular shapes make standardizing joints difficult", "Not ideal for multi-story load-bearing walls without composites"] },
+              { title: "Lime Pozzolana & Green Concrete", desc: "Substitutes standard cement to reduce carbon footprint. Great for filler slabs and foundation work.", price: "₹300–₹350 / bag", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80", fullDesc: "Traditional Portland cement is a massive contributor to global warming. Lime Pozzolana Cement (LPC) and Green Concrete replace a large percentage of cement with pozzolanic materials (like fly ash or slag), reducing carbon emissions.", strengths: ["Drastically lower carbon footprint than standard OPC", "Improves long-term durability and workability", "Excellent breathability (Lime)", "Reduces cracking in plaster"], weaknesses: ["Slower setting time compared to standard cement", "Requires careful curing", "Lower early-stage compressive strength"] }
+            ],
+
+            compareTitle: "Conventional vs. Green Materials",
+            compareDesc: "A direct comparison highlighting why eco-friendly alternatives offer superior long-term value.",
+            compareHeaders: ["Building Element", "Conventional Material", "Green Alternative", "Key Benefit"],
+            comparisons: [
+              { element: "Wall Construction", conv: "Burned Clay Bricks", green: "AAC / Stabilized Mud Blocks", benefit: "Preserves agricultural topsoil, 60% lighter, and offers superior thermal insulation." },
+              { element: "Cement & Binding", conv: "Ordinary Portland Cement", green: "Lime Pozzolana / Green Concrete", benefit: "Massively reduces carbon footprint by utilizing industrial waste like Fly Ash." },
+              { element: "Roofing & Slabs", conv: "Solid RCC Slab", green: "Filler Slabs / Ferro Cement", benefit: "Reduces concrete volume by 20-30%, lowering structural dead load and cost." },
+              { element: "Interior Partitions", conv: "Standard Brick Walls", green: "Gypsum Board Panels / Bamboo", benefit: "Highly recyclable, lightweight, rapid installation, and requires zero water curing." }
+            ],
+
+            projectsTitle: "Top Rated Green Buildings in India",
+            projectsDesc: "Drawing inspiration from the finest sustainable architecture across the nation.",
+            projectItems: [
+              { title: "Suzlon One Earth", location: "Pune, Maharashtra", rating: "LEED Platinum & GRIHA 5-Star", description: "India's first 100% renewable energy campus.", materials: "Recycled steel, AAC blocks, sustainable bamboo flooring.", tech: "Passive downdraft cooling, daylight sensors, 100% rainwater harvesting.", image: "https://images.unsplash.com/photo-1596423735880-5c6fa9fb59da?auto=format&fit=crop&w=800&q=80", year: "2010", architect: "Christopher Charles Benninger", fullDescription: "Suzlon One Earth is a sprawling 10.4-acre corporate campus that embodies the ethos of a zero-emission, zero-waste facility. Instead of a towering glass skyscraper, the campus is designed as a series of interconnected low-rise buildings arranged around a central courtyard, maximizing natural light and ventilation.", highlights: ["Powered entirely by off-site wind turbines and on-site solar panels.", "Over 70% of the materials used were sourced within a 500 km radius.", "Zero Waste Management policy ensures organic waste is converted to manure onsite."], gallery: ["https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=400&q=80"] },
+              { title: "CII-Godrej Green Business Centre", location: "Hyderabad, Telangana", rating: "LEED Platinum", description: "The first building outside the US to be awarded the LEED Platinum rating. A living laboratory for green building concepts.", materials: "Fly ash blocks, recycled wood, vegetated 'green' roof.", tech: "Traditional wind towers for 20% passive cooling, rooftop solar PV array.", image: "https://images.unsplash.com/photo-1565538810643-b5bdb714032a?auto=format&fit=crop&w=800&q=80", year: "2004", architect: "Karan Grover", fullDescription: "This building sparked the modern green building movement in India. It features a circular design that maximizes the ingress of natural daylight while minimizing direct heat gain.", highlights: ["The first building outside the USA to receive a LEED Platinum rating.", "Consumes 50% less energy compared to a conventional building.", "60% of the building's roof is covered with vegetation (Green Roof)."], gallery: ["https://images.unsplash.com/photo-1541888072049-35cb8c148fa7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80"] },
+              { title: "ITC Green Centre", location: "Gurgaon, Haryana", rating: "LEED Platinum", description: "Sets a global benchmark by being entirely water-positive and significantly reducing its carbon footprint.", materials: "High-albedo roofing materials, high fly ash concrete.", tech: "Zero-water discharge, intelligent CO2 monitoring systems.", image: "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=800&q=80", year: "2004", architect: "Rajinder Kumar Associates", fullDescription: "The ITC Green Centre is a testament to sustainable corporate growth. It boasts the unique distinction of being a 'Water Positive' corporate building, meaning it captures and returns more rainwater to the ground than it consumes.", highlights: ["Achieves Zero Water Discharge through comprehensive recycling systems.", "Natural glare-free daylight is provided to 75% of the occupied interior spaces.", "Over 10% of total building materials consist of recycled content."], gallery: ["https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80"] },
+              { title: "Infosys SDB-11", location: "Pune, Maharashtra", rating: "LEED Platinum", description: "Achieves a massive 50% energy savings compared to conventional buildings, focusing heavily on thermal comfort.", materials: "Insulated cavity walls, radiant cooling panels.", tech: "Radiant Cooling technology, smart BMS, natural daylighting.", image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", year: "2012", architect: "Hafeez Contractor", fullDescription: "Designed with an unwavering focus on energy efficiency and employee thermal comfort, SDB-11 completely rethinks corporate air conditioning. Instead of blowing cold air, it utilizes radiant cooling technology.", highlights: ["First building of its scale in India to successfully implement radiant cooling.", "Sensor-based lighting automatically adjusts based on natural sunlight.", "Highly efficient water fixtures reduce overall water consumption by 40%."], gallery: ["https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=400&q=80"] },
+              { title: "Olympia Tech Park", location: "Chennai, Tamil Nadu", rating: "LEED Gold", description: "One of the largest and most energy-efficient IT parks in the world, utilizing extensive natural lighting.", materials: "Fly ash concrete, zero-VOC paints, recycled aluminum.", tech: "100% water recycling, smart HVAC, daylight sensors.", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80", year: "2006", architect: "Khadir & Associates", fullDescription: "Olympia Tech Park stands as a pioneer of sustainable commercial real estate in South India. By incorporating wind-assisted natural ventilation and massive greywater recycling plants, it drastically reduces its load on city infrastructure.", highlights: ["Features advanced intelligent lighting systems that sync with natural sunlight.", "Saves over 50% on energy costs and 40% on water usage.", "Utilizes high-albedo roof paint to heavily reduce the urban heat island effect."], gallery: ["https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80"] },
+              { title: "Patni Knowledge Center", location: "Noida, UP", rating: "LEED Platinum", description: "Designed to capture 75% natural daylight and reduces energy costs by over 50% compared to standard buildings.", materials: "Locally sourced stone, green concrete, double glazed glass.", tech: "Passive cooling, drip irrigation, massive solar arrays.", image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80", year: "2007", architect: "Design Associates", fullDescription: "This architectural marvel was built to perfectly harmonize with the harsh Northern Indian climate. It heavily utilizes earth-coupling and courtyards to ensure that indoor temperatures remain comfortable even during peak summer without heavy AC usage.", highlights: ["Over 75% of the office areas receive direct, glare-free natural sunlight.", "100% of sewage is treated locally and used for landscaping.", "Built almost entirely using locally sourced, low-embodied-energy materials."], gallery: ["https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=400&q=80"] },
+              { title: "Infinity Benchmark", location: "Kolkata, West Bengal", rating: "LEED Platinum", description: "Features a highly efficient building envelope, eco-friendly refrigerants, and extensive green cover.", materials: "Recycled construction waste, FSC certified wood.", tech: "CO2 sensors, variable frequency drives for HVAC, electric vehicle charging.", image: "https://images.unsplash.com/photo-1541888072049-35cb8c148fa7?auto=format&fit=crop&w=800&q=80", year: "2009", architect: "In-house Architecture", fullDescription: "Infinity Benchmark is the 7th building in the world to receive the prestigious LEED Platinum rating. It is a stunning display of sustainable innovation, employing intelligent technologies to dynamically adjust power consumption based on building occupancy.", highlights: ["Equipped with state-of-the-art CO2 sensors to pump in fresh air automatically.", "Energy-efficient chillers and Variable Frequency Drives cut down HVAC costs immensely.", "Extensive use of polyurethane foam for superior roof insulation."], gallery: ["https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80"] }
+            ],
+            
+            contactTitle: "Get In Touch",
+            contactDesc: "Ready to start your sustainable project or need a GRIHA/LEED assessment? Contact us today.",
+            namePlaceholder: "Your Name",
+            emailPlaceholder: "Your Email Address",
+            messagePlaceholder: "Tell us about your project...",
+            submitBtn: "Send Message",
+            address: "Chennai, Tamil Nadu, India",
+            phone: "+91 98765 43210",
+            email: "consult@ecobuildindia.com",
+            footerText: "© 2026 EcoBuild India - Green Building Consultants. All rights reserved.",
+
+            chatTitle: "Greeny Assistant",
+            chatPlaceholder: "Ask about materials, cost, LEED, Bamboo...",
+            chatDefaultGreeting: "Hi! I'm Greeny 🌿. I am trained on Green Building concepts. Ask me about cost-effective materials (Bamboo, Lime Pozzolana), technologies (Rat Trap Bond, Ferro Cement), Global Warming, or LEED/GRIHA ratings!",
+            chatResponses: {
+              rating: { text: "Green building rating systems like BREEAM, LEED, GREEN STAR, and GRIHA evaluate buildings based on sustainable design, energy efficiency, and ecological impact.", action: { label: "View Rating Services", tabIndex: 1 } },
+              material: { text: "Our eco-materials include Stone, Laterite blocks, Stabilized Mud Blocks, Lime Pozzolana Cement, Gypsum Boards, Fiber Composites, and Bamboo. We also emphasize recycling brick, concrete, steel, and plastics to mitigate environmental issues related to quarrying.", action: { label: "Explore Eco-Materials", tabIndex: 2 } },
+              cost: { text: "A conventional home costs ₹1,900-₹2,500/sq.ft. By using cost-effective building techniques, a green home (₹2,200-₹2,900/sq.ft) pays for its 10-18% premium in 5-8 years! Check out our packages.", action: { label: "Calculate Price Package", tabIndex: 1 } },
+              tech: { text: "Environment-friendly building technologies include wall substitutes like Flemish Bond, Rat Trap Bond, and Cavity Walls. We also use Ferro Cement for pre-cast members (doors, windows, water tanks) and Filler Slabs for alternate roofing.", action: { label: "View Construction Tech", tabIndex: 1 } },
+              solar: { text: "The application of solar energy in buildings is vital. We utilize passive solar design and advanced HVAC alternatives alongside rooftop Solar PV arrays to reduce global warming impacts.", action: { label: "Discover Solar Projects", tabIndex: 3 } },
+              environment: { text: "Conventional construction causes massive global warming. We reduce this by avoiding quarrying, utilizing recycled materials (plastics/steel), and implementing life-cycle design.", action: { label: "Why Green Buildings?", tabIndex: 0 } },
+              default: { text: "That's an interesting question! I specialize in Green Building Concepts like cost-effective materials, sustainable tech (Ferro Cement), global warming mitigation, and LEED/GRIHA. Can you ask about one of those?", action: null }
+            }
+          },
+
+          ta: {
+            appTitle: "ஈகோபில்ட் இந்தியா",
+            consultant: "பசுமை கட்டிட ஆலோசகர்",
+            tabs: ["முகப்பு", "சேவைகள்", "பொருட்கள்", "திட்டங்கள்", "தொடர்பு"], 
+            
+            heroTitle: "இந்தியாவில் ஒரு நிலையான எதிர்காலத்தை உருவாக்குதல்",
+            heroSub: "சுற்றுச்சூழலுக்கு உகந்த, ஆற்றல் திறன் கொண்ட மற்றும் செலவு குறைந்த கட்டுமானங்களுக்கான நிபுணர் ஆலோசனை.",
+            whyGreenTitle: "பசுமை கட்டிடங்களை ஏன் தேர்வு செய்ய வேண்டும்?",
+            whyGreenDesc: "வழக்கமான கட்டிடங்கள் புவி வெப்பமடைதலுக்கு முக்கிய காரணமாகும். நிலையான கட்டுமானங்களுக்கு மாறுவதன் மூலம், ஆற்றலை மிச்சப்படுத்தலாம் மற்றும் ஆரோக்கியமான சூழலை உருவாக்கலாம்.",
+            benefits: ["சுற்றுச்சூழல் நன்மைகள்", "பொருளாதார நன்மைகள்", "சுகாதார நன்மைகள்", "குறைந்த கார்பன் உமிழ்வு"],
+            homeProjectsTitle: "ஊக்கமளிக்கும் பசுமை கட்டிடக்கலை",
+            homeMaterialsTitle: "சுற்றுச்சூழல் பொருட்களுடன் புதுமை",
+
+            servicesTitle: "எங்கள் விரிவான ஆலோசனை சேவைகள்",
+            servicesSub: "கருத்தாக்கம் முதல் இறுதி சான்றிதழ் வரை, உங்கள் கட்டிடத்தை சுற்றுச்சூழலுக்கு உகந்ததாகவும் லாபகரமானதாகவும் மாற்ற முழுமையான தீர்வுகளை நாங்கள் வழங்குகிறோம்.",
+            service1Title: "பசுமை கட்டிட மதிப்பீட்டு அமைப்புகள்",
+            service1Desc: "உங்கள் புதிய அல்லது இருக்கும் கட்டிடங்களுக்கு சிறந்த நிலைத்தன்மை சான்றிதழ்களைப் பெறுவதற்கான முழுமையான உதவி.",
+            service1Features: ["GRIHA, LEED, BREEAM அமைப்புகளில் நிபுணத்துவம்.", "முன் மதிப்பீடு மற்றும் புள்ளி அமைப்பு பகுப்பாய்வு.", "கார்பன் தட மதிப்பீடு மற்றும் குறைப்பு உத்திகள்.", "பொருட்களின் ஒருங்கிணைந்த வாழ்க்கைச் சுழற்சி வடிவமைப்பு."],
+            service2Title: "சூரிய சக்தி குளிர்ச்சி மற்றும் வெப்பமாக்கல்",
+            service2Desc: "இயந்திர ஏசி அமைப்புகளைச் சார்ந்திருப்பதைக் கணிசமாகக் குறைத்து, இயற்கை ஆற்றலைப் பயன்படுத்தி வெப்ப வசதியைப் பராமரிக்க மேம்பட்ட கட்டிடக்கலை உத்திகள்.",
+            service2Features: ["குறைந்த ஆற்றல் குளிர்ச்சிக்கு சூரிய சக்தியின் பயன்பாடு.", "இயற்கையான காற்றோட்டத்திற்கான வடிவமைப்பு.", "வழக்கு ஆய்வுகளின் அடிப்படையிலான குளிர்ச்சி மாதிரிகள்.", "பூஜ்ஜிய-ஆற்றல் கருத்துகளின் ஒருங்கிணைப்பு."],
+            service3Title: "செலவு குறைந்த கட்டுமான தொழில்நுட்பங்கள்",
+            service3Desc: "சுற்றுச்சூழல் பாதிப்பைக் குறைக்கும் அதே வேளையில், ஆரம்ப மூலதனச் செலவுகளை வெகுவாகக் குறைக்கும் மாற்று கட்டுமான முறைகளை செயல்படுத்துதல்.",
+            service3Features: ["மாற்று சுவர்கள்: எலிப் பொறி பந்தம் (Rat Trap Bond).", "கூரை அமைப்புகள்: பில்லர் ஸ்லாப்கள் (Filler Slabs).", "பெரோ சிமென்ட் மற்றும் மண் தொகுதிகள் பயன்பாடு.", "கட்டுமான கழிவுகளை மறுசுழற்சி செய்தல்."],
+
+            packagesTitle: "கட்டுமான தொகுப்புகள் & விலை மதிப்பீட்டாளர்",
+            packagesSub: "உங்கள் விலைக்கு ஏற்ற சுற்றுசூழல் நட்பு பொருட்கள் மற்றும் தொழில்நுட்பங்களை கண்டறிய பட்ஜெட் ஸ்லைடரை சரிசெய்யவும்.",
+            budgetLabel: "பட்ஜெட்டை அமைக்கவும் (சதுர அடிக்கு ₹):",
+            budgetPrice: "₹",
+            packages: [
+              { min: 1900, max: 2399, name: "அடிப்படை பசுமை தொகுப்பு", badge: "செலவு குறைவானது", desc: "நிலைத்தன்மையை நோக்கி முதல் அடி எடுத்து வைக்கும் குறைந்த பட்ஜெட் திட்டங்களுக்கு ஏற்றது.", materials: ["சாம்பல் செங்கற்கள் (Fly Ash)", "மண் தொகுதிகள் (SMB)", "சுண்ணாம்பு போஸோலானா சிமெண்ட்", "உள்ளூர் லேட்டரைட் கற்கள்"], tech: ["எலிப் பொறி பந்தம் (25% செங்கற்களை சேமிக்கிறது)", "அடிப்படை மழைநீர் சேகரிப்பு", "இயற்கை காற்றோட்ட வடிவமைப்பு"] },
+              { min: 2400, max: 2999, name: "மேம்பட்ட நிலைத்தன்மை", badge: "மிகவும் பிரபலமானது", desc: "நவீன பசுமை தொழில்நுட்பம் மற்றும் செலவு-திறன் ஆகியவற்றின் சரியான சமநிலை. 5-8 ஆண்டுகளில் முதலீடு திரும்ப கிடைக்கும்.", materials: ["AAC கற்கள் (சிறந்த வெப்ப காப்பு)", "பில்லர் ஸ்லாப் (Filler Slabs) கூரை", "ஜிப்சம் பலகை பகிர்வுகள்", "மூங்கில் கட்டமைப்புகள்"], tech: ["செயலற்ற சூரிய குளிர்ச்சி", "சூரிய நீர் சூடாக்கும் அமைப்பு", "கழிவுநீர் மறுசுழற்சி (Greywater)"] },
+              { min: 3000, max: 5000, name: "பிரீமியம் நெட்-ஜீரோ", badge: "LEED/GRIHA தயார்", desc: "முழுமையான நிலைத்தன்மை. பூஜ்ஜிய கார்பன் உமிழ்வு மற்றும் நீர்-நேர்மறை நிலையை நோக்கமாகக் கொண்டது.", materials: ["பெரோ சிமென்ட் கூறுகள்", "பசுமை கான்கிரீட் & மறுசுழற்சி எஃகு", "குறைந்த உமிழ்வு (Low-E) கண்ணாடி", "மறுசுழற்சி செய்யப்பட்ட மரம்"], tech: ["முழு சூரிய PV அமைப்பு", "பூமி காற்று சுரங்கப்பாதை (Earth Air Tunnels)", "பூஜ்ஜிய நீர் வெளியேற்றம்", "ஸ்மார்ட் சென்சார்கள்"] }
+            ],
+
+            materialsTitle: "சுற்றுச்சூழல் நட்பு பொருட்கள் மற்றும் 2026 மதிப்பிடப்பட்ட செலவுகள்",
+            materialsDesc: "பசுமை கட்டிடம் என்பது சுற்றுச்சூழல் சார்ந்த தேர்வு மட்டுமல்ல; இது ஒரு சிறந்த நிதி முதலீடாகும்.",
+            costConstructionTitle: "ஒட்டுமொத்த கட்டுமான செலவு",
+            costConstructionDesc: "சாதாரண வீடு சதுர அடிக்கு ₹1,900 - ₹2,500 செலவாகும். பசுமை வீடு சதுர அடிக்கு ₹2,200 - ₹2,900 ஆகும். 10-18% கூடுதல் செலவு 5-8 ஆண்டுகளில் மின்சாரம் மற்றும் நீர் சேமிப்பு மூலம் திரும்பக் கிடைக்கும்.",
+            materialItems: [
+              { title: "AAC கற்கள்", desc: "சுவர் எடையை 60% குறைக்கிறது, கட்டுமான நேரத்தை குறைக்கிறது மற்றும் ஆற்றல் திறனை மேம்படுத்துகிறது.", price: "₹40–₹55 / கல்", img: "https://images.unsplash.com/photo-1621252179027-94459d278660?auto=format&fit=crop&w=600&q=80", fullDesc: "AAC என்பது அதிக வெப்ப காப்பு திறன் கொண்ட, எடை குறைந்த கான்கிரீட் பொருளாகும்.", strengths: ["சிறந்த வெப்ப காப்பு", "60% எடை குறைவு", "அதிக தீ தடுப்பு திறன்"], weaknesses: ["சிறப்பு சிமெண்ட் கலவை தேவை", "குறைந்த சுமை தாங்கும் திறன்"] },
+              { title: "சூரிய சக்தி பேனல்கள் (Solar PV)", desc: "மலிவு விலை புதுப்பிக்கத்தக்க ஆற்றல். கட்டிடங்களில் சூரிய சக்தியின் பயன்பாட்டிற்கு இன்றியமையாதது.", price: "₹1.5–₹2 லட்சம் / 3kW", img: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=600&q=80", fullDesc: "சூரிய ஒளியை நேரடியாக மின்சாரமாக மாற்றுகிறது. 'நெட்-ஜீரோ' ஆற்றல் நிலையை அடைய இது முக்கியம்.", strengths: ["இலவச மின்சாரம்", "கார்பன் தடத்தை குறைக்கிறது", "நீண்ட ஆயுள்"], weaknesses: ["ஆரம்ப முதலீடு அதிகம்", "வானிலையை பொறுத்தது", "கூரை இடம் தேவை"] },
+              { title: "மழைநீர் சேகரிப்பு", desc: "கூரை நீர் சேகரிப்பு, பெரோ சிமென்ட் அல்லது கான்கிரீட் பயன்படுத்தி நிலத்தடி சேமிப்பு.", price: "₹30k–₹80k மொத்தம்", img: "https://images.unsplash.com/photo-1521106047353-7b70bc815b81?auto=format&fit=crop&w=600&q=80", fullDesc: "மழைநீரை சேகரித்து மீண்டும் பயன்படுத்துதல். இது நிலத்தடி நீர் மட்டத்தை உயர்த்த உதவுகிறது.", strengths: ["மாநகராட்சி நீரை சார்ந்திருப்பதை குறைக்கிறது", "மண் அரிப்பைத் தடுக்கிறது"], weaknesses: ["வடிகட்டிகளை சுத்தம் செய்ய வேண்டும்", "ஆரம்ப செலவு அதிகம்"] },
+              { title: "சாம்பல் மற்றும் மண் செங்கற்கள்", desc: "தொழிற்சாலை கழிவுகள் மற்றும் உள்ளூர் மண்ணை பயன்படுத்தும் சுற்றுச்சூழல் மாற்று.", price: "₹5–₹8 / செங்கல்", img: "https://images.unsplash.com/photo-1580211797285-3bcbd69165b4?auto=format&fit=crop&w=600&q=80", fullDesc: "நிலக்கரி மின் நிலையங்களின் கழிவுகளை (Fly Ash) பயன்படுத்துவதன் மூலம் கழிவுகள் குறைக்கப்படுகிறது.", strengths: ["தொழிற்சாலை கழிவுகள் பயன்படுத்தப்படுகிறது", "மேல் மண் சுரண்டப்படுவதில்லை"], weaknesses: ["சாம்பலின் தரம் மாறக்கூடியது", "அதிக ஈரப்பதத்திற்கு ஏற்றதல்ல"] },
+              { title: "மூங்கில்", desc: "மரத்திற்கு மாற்றாக பயன்படுத்தக்கூடிய அதிக இழுவிசை கொண்ட புதுப்பிக்கத்தக்க பொருள்.", price: "₹80–₹150 / மூங்கில்", img: "https://images.unsplash.com/photo-1533038590840-1cbea976a473?auto=format&fit=crop&w=600&q=80", fullDesc: "மூங்கில் பூமியில் மிக வேகமாக வளரும் தாவரங்களில் ஒன்றாகும். இது எஃகுக்கு நிகரான வலிமை கொண்டது.", strengths: ["வேகமாக வளரும் வளம்", "குறைந்த எடையில் அதிக வலிமை"], weaknesses: ["ரசாயன சிகிச்சை தேவை", "பல அடுக்கு கட்டிடங்களுக்கு கடினம்"] },
+              { title: "பசுமை கான்கிரீட்", desc: "கார்பன் தடத்தை குறைக்க சாதாரண சிமெண்டிற்கு மாற்று.", price: "₹300–₹350 / மூட்டை", img: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80", fullDesc: "பசுமை கான்கிரீட் சிமெண்டிற்கு பதிலாக சாம்பல் (Fly ash) போன்ற பொருட்களைப் பயன்படுத்துகிறது.", strengths: ["மிகக் குறைந்த கார்பன் தடம்", "விரிசல் குறைவு"], weaknesses: ["மெதுவாக செட் ஆகும்", "ஆரம்ப கட்ட வலிமை குறைவு"] }
+            ],
+
+            compareTitle: "வழக்கமான vs. பசுமை பொருட்கள் ஒப்பீடு",
+            compareDesc: "சுற்றுச்சூழலுக்கு உகந்த மாற்று பொருட்கள் ஏன் சிறந்த நீண்ட கால மதிப்பையும் குறைந்த சுற்றுச்சூழல் பாதிப்பையும் வழங்குகின்றன என்பதற்கான ஒப்பீடு.",
+            compareHeaders: ["கட்டிட பகுதி", "வழக்கமான பொருள்", "பசுமை மாற்று", "முக்கிய நன்மை"],
+            comparisons: [
+              { element: "சுவர் கட்டுமானம்", conv: "சுட்ட செங்கற்கள்", green: "AAC / மண் தொகுதிகள்", benefit: "மேல் மண்ணைப் பாதுகாக்கிறது, 60% எடை குறைவு மற்றும் சிறந்த வெப்ப காப்பு வழங்குகிறது." },
+              { element: "சிமெண்ட் & பிணைப்பு", conv: "சாதாரண போர்ட்லேண்ட் சிமெண்ட்", green: "சுண்ணாம்பு போஸோலானா", benefit: "தொழிற்சாலை கழிவுகளைப் பயன்படுத்தி கான்கிரீட்டின் கார்பன் தடத்தை பெருமளவு குறைக்கிறது." },
+              { element: "கூரை (Roofing)", conv: "திட RCC ஸ்லாப்", green: "பில்லர் ஸ்லாப் / பெரோ சிமென்ட்", benefit: "கான்கிரீட் பயன்பாட்டை 20-30% குறைக்கிறது, மற்றும் கட்டிடத்தின் எடையைக் குறைக்கிறது." },
+              { element: "உட்புற பகிர்வுகள்", conv: "செங்கல் சுவர்கள்", green: "ஜிப்சம் பலகைகள் / மூங்கில்", benefit: "எடை குறைவானது, மறுசுழற்சி செய்யக்கூடியது, விரைவான நிறுவல்." }
+            ],
+
+            projectsTitle: "இந்தியாவின் சிறந்த பசுமை கட்டிடங்கள்",
+            projectsDesc: "தேசம் முழுவதும் உள்ள தலைசிறந்த நிலையான கட்டிடக்கலையில் இருந்து உத்வேகம்.",
+            projectItems: [
+              { title: "சுஸ்லான் ஒன் எர்த்", location: "புனே, மகாராஷ்டிரா", rating: "LEED பிளாட்டினம்", description: "இந்தியாவின் முதல் 100% புதுப்பிக்கத்தக்க ஆற்றல் வளாகம்.", materials: "மறுசுழற்சி செய்யப்பட்ட எஃகு, AAC கற்கள், மூங்கில்.", tech: "இயற்கை காற்றோட்டம், 90% பகல் வெளிச்சம், 100% மழைநீர் சேகரிப்பு.", image: "https://images.unsplash.com/photo-1596423735880-5c6fa9fb59da?auto=format&fit=crop&w=800&q=80", year: "2010", architect: "கிறிஸ்டோபர் சார்லஸ்", fullDescription: "சுஸ்லான் ஒன் எர்த் என்பது 10.4 ஏக்கர் பரப்பளவைக் கொண்ட பெருநிறுவன வளாகமாகும், இது பூஜ்ஜிய உமிழ்வு மற்றும் பூஜ்ஜிய கழிவு என்ற நெறிமுறையை உள்ளடக்கியது.", highlights: ["100% காற்றாலை மற்றும் சூரிய ஒளி மூலம் இயங்குகிறது.", "கட்டுமானப் பொருட்களில் 70% பொருட்கள் உள்ளூரில் இருந்து பெறப்பட்டன.", "பூஜ்ஜிய கழிவு மேலாண்மை கொள்கை."], gallery: ["https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=400&q=80"] },
+              { title: "CII-கோத்ரேஜ் மையம்", location: "ஹைதராபாத், தெலுங்கானா", rating: "LEED பிளாட்டினம்", description: "அமெரிக்காவிற்கு வெளியே LEED பிளாட்டினம் சான்றிதழ் பெற்ற முதல் கட்டிடம்.", materials: "சாம்பல் செங்கற்கள், தாவரங்களால் சூழப்பட்ட பசுமை கூரை.", tech: "பாரம்பரிய காற்று கோபுரங்கள், கூரை சூரிய சக்தி அமைப்பு.", image: "https://images.unsplash.com/photo-1565538810643-b5bdb714032a?auto=format&fit=crop&w=800&q=80", year: "2004", architect: "கரண் குரோவர்", fullDescription: "இந்த கட்டிடம் இந்தியாவில் பசுமை கட்டிட இயக்கத்தை தூண்டியது. இது ஒரு வட்ட வடிவ அமைப்பை கொண்டுள்ளது.", highlights: ["அமெரிக்காவிற்கு வெளியே LEED பிளாட்டினம் பெற்ற முதல் கட்டிடம்.", "50% குறைவான ஆற்றலை பயன்படுத்துகிறது.", "கட்டிடத்தின் 60% பகுதியை பசுமை கூரை உள்ளடக்கியுள்ளது."], gallery: ["https://images.unsplash.com/photo-1541888072049-35cb8c148fa7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1431540015161-0bf868a2d407?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80"] },
+              { title: "ஐடிசி கிரீன் சென்டர்", location: "குர்கான், ஹரியானா", rating: "LEED பிளாட்டினம்", description: "வழக்கமான கட்டிடங்களை விட கார்பன் தடத்தை கணிசமாகக் குறைத்து உலகளாவிய அளவுகோலை அமைக்கிறது.", materials: "சூரிய ஒளியை பிரதிபலிக்கும் கூரை, அதிக சாம்பல் கான்கிரீட்.", tech: "பூஜ்ஜிய நீர் வெளியேற்றம், நுண்ணறிவு CO2 கண்காணிப்பு.", image: "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=800&q=80", year: "2004", architect: "ரஜிந்தர் குமார்", fullDescription: "ஐடிசி கிரீன் சென்டர் நிலையான பெருநிறுவன வளர்ச்சிக்கான ஒரு சான்றாகும். இது 'நீர் நேர்மறை' (Water Positive) என்ற பெருமையைப் பெற்றுள்ளது.", highlights: ["பூஜ்ஜிய நீர் வெளியேற்றம் (Zero water discharge).", "75% உட்புற பகுதிகளுக்கு நேரடி இயற்கை வெளிச்சம்.", "10% க்கும் அதிகமான மறுசுழற்சி செய்யப்பட்ட பொருட்கள்."], gallery: ["https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80"] },
+              { title: "இன்போசிஸ் SDB-11", location: "புனே, மகாராஷ்டிரா", rating: "LEED பிளாட்டினம்", description: "வழக்கமான கட்டிடங்களுடன் ஒப்பிடும்போது 50% ஆற்றல் சேமிப்பை அடைகிறது.", materials: "கேவிட்டி சுவர்கள் (Cavity Walls), கதிர்வீச்சு குளிரூட்டும் பேனல்கள்.", tech: "கதிர்வீச்சு குளிரூட்டும் தொழில்நுட்பத்தின் முன்னோடி.", image: "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80", year: "2012", architect: "ஹபீஸ் கான்ட்ராக்டர்", fullDescription: "ஆற்றல் திறன் மற்றும் ஊழியர்களின் வெப்ப வசதியை கருத்தில் கொண்டு வடிவமைக்கப்பட்டுள்ளது. இது கதிர்வீச்சு குளிரூட்டும் தொழில்நுட்பத்தை பயன்படுத்துகிறது.", highlights: ["பெரிய அளவில் கதிர்வீச்சு குளிரூட்டும் தொழில்நுட்பம் பயன்படுத்தப்பட்டுள்ளது.", "இயற்கை வெளிச்சத்திற்கு ஏற்ப தானாக ஒளியை சரிசெய்யும் விளக்குகள்.", "நீர் பயன்பாடு 40% குறைக்கப்பட்டுள்ளது."], gallery: ["https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=400&q=80"] },
+              { title: "ஒலிம்பியா டெக் பார்க்", location: "சென்னை, தமிழ்நாடு", rating: "LEED தங்கம்", description: "உலகின் மிகப்பெரிய மற்றும் ஆற்றல் திறன் கொண்ட தகவல் தொழில்நுட்ப பூங்காக்களில் ஒன்று.", materials: "சாம்பல் கான்கிரீட், மறுசுழற்சி செய்யப்பட்ட அலுமினியம்.", tech: "100% நீர் மறுசுழற்சி, பகல் வெளிச்ச சென்சார்கள்.", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80", year: "2006", architect: "கதிர் & அசோசியேட்ஸ்", fullDescription: "தென்னிந்தியாவில் நிலையான வணிக ரியல் எஸ்டேட்டின் முன்னோடியாக ஒலிம்பியா டெக் பார்க் விளங்குகிறது. இது இயற்கை காற்றோட்டம் மற்றும் கழிவுநீர் மறுசுழற்சியை பெருமளவில் பயன்படுத்துகிறது.", highlights: ["ஆற்றல் செலவுகளில் 50% மற்றும் நீர் பயன்பாட்டில் 40% சேமிக்கிறது.", "இயற்கை சூரிய ஒளிக்கு ஏற்ப ஒளியை தானாகவே சரிசெய்யும் அமைப்புகள்.", "வெப்பத்தை பெருமளவு குறைக்க சிறப்பு கூரை வண்ணம்."], gallery: ["https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1416331108676-a22ccb276e35?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=400&q=80"] },
+              { title: "பாட்னி அறிவு மையம்", location: "நொய்டா, UP", rating: "LEED பிளாட்டினம்", description: "75% இயற்கையான பகல் வெளிச்சத்தைப் பிடிக்கும் வகையில் வடிவமைக்கப்பட்டுள்ளது.", materials: "உள்ளூர் கல், பசுமை கான்கிரீட், இரட்டை கண்ணாடி.", tech: "சொட்டு நீர் பாசனம், விரிவான சூரிய சக்தி அமைப்பு.", image: "https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=800&q=80", year: "2007", architect: "டிசைன் அசோசியேட்ஸ்", fullDescription: "இந்த கட்டிடக்கலை அற்புதம் வட இந்தியாவின் கடுமையான காலநிலைக்கு ஏற்ப கட்டப்பட்டுள்ளது. கோடைகாலத்தில் வெப்பநிலையை சீராக வைக்க இயற்கையான வடிவமைப்பு முறைகளை பயன்படுத்துகிறது.", highlights: ["அலுவலகத்தின் 75% பகுதிகளில் நேரடி சூரிய வெளிச்சம்.", "கழிவுநீர் 100% சுத்திகரிக்கப்பட்டு தோட்ட வேலைகளுக்கு பயன்படுகிறது.", "முற்றிலும் உள்ளூரில் கிடைத்த பொருட்களைப் பயன்படுத்தி கட்டப்பட்டது."], gallery: ["https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1531834685032-c34bf0d84c77?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1497215842964-222b430dc094?auto=format&fit=crop&w=400&q=80"] },
+              { title: "இன்ஃபினிட்டி பெஞ்ச்மார்க்", location: "கொல்கத்தா, மேற்கு வங்காளம்", rating: "LEED பிளாட்டினம்", description: "அதிக திறன் கொண்ட கட்டிட உறை மற்றும் சூழல் நட்பு குளிர்பதனப் பொருட்களைக் கொண்டுள்ளது.", materials: "மறுசுழற்சி செய்யப்பட்ட மரங்கள் மற்றும் கட்டுமான கழிவுகள்.", tech: "CO2 சென்சார்கள், மின்சார வாகன சார்ஜிங் நிலையங்கள்.", image: "https://images.unsplash.com/photo-1541888072049-35cb8c148fa7?auto=format&fit=crop&w=800&q=80", year: "2009", architect: "உள்-கட்டிடக்கலை", fullDescription: "உலகளவில் LEED பிளாட்டினம் சான்றிதழ் பெற்ற 7வது கட்டிடம் இதுவாகும். கட்டிடத்தில் உள்ள ஆட்களின் எண்ணிக்கைக்கு ஏற்ப மின்சாரத்தை இது தானாகவே சேமிக்கிறது.", highlights: ["தானாகவே புதிய காற்றை உள்ளே அனுப்பும் CO2 சென்சார்கள்.", "ஆற்றல் திறன் கொண்ட ஏசி அமைப்புகள் மற்றும் மோட்டார்கள்.", "கூரையின் வெப்ப காப்புக்கு சிறப்பு நுரை பயன்படுத்தப்பட்டுள்ளது."], gallery: ["https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=400&q=80", "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=400&q=80"] }
+            ],
+            
+            contactTitle: "தொடர்பு கொள்ள",
+            contactDesc: "உங்கள் நிலையான திட்டத்தைத் தொடங்க தயாரா அல்லது GRIHA/LEED மதிப்பீடு தேவையா? இன்றே எங்களை தொடர்பு கொள்ளவும்.",
+            namePlaceholder: "உங்கள் பெயர்",
+            emailPlaceholder: "உங்கள் மின்னஞ்சல்",
+            messagePlaceholder: "உங்கள் திட்டத்தை பற்றி கூறுங்கள்...",
+            submitBtn: "செய்தி அனுப்பு",
+            address: "சென்னை, தமிழ்நாடு, இந்தியா",
+            phone: "+91 98765 43210",
+            email: "consult@ecobuildindia.com",
+            footerText: "© 2026 ஈகோபில்ட் இந்தியா - பசுமை கட்டிட ஆலோசகர்கள். அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டவை.",
+
+            chatTitle: "கிரீனி (Greeny) உதவியாளர்",
+            chatPlaceholder: "பொருட்கள், செலவு, மூங்கில் பற்றி கேளுங்கள்...",
+            chatDefaultGreeting: "வணக்கம்! நான் கிரீனி (Greeny) 🌿. பசுமை கட்டிட தொழில்நுட்பங்களில் நான் பயிற்சி பெற்றுள்ளேன். மூங்கில், பெரோ சிமென்ட், LEED/GRIHA மதிப்பீடுகள் மற்றும் புவி வெப்பமடைதல் பற்றி என்னிடம் கேளுங்கள்!",
+            chatResponses: {
+              rating: { text: "BREEAM, LEED, GREEN STAR மற்றும் GRIHA போன்ற அமைப்புகள், நிலையான வடிவமைப்பு மற்றும் ஆற்றல் திறனின் அடிப்படையில் கட்டிடங்களை மதிப்பிடுகின்றன.", action: { label: "சான்றிதழ் சேவைகளை பார்க்க", tabIndex: 1 } },
+              material: { text: "லேட்டரைட் கற்கள், மண் தொகுதிகள், சுண்ணாம்பு போஸோலானா, ஜிப்சம், மூங்கில் மற்றும் ஃபைபர் கலவைகள் ஆகியவை செலவு குறைந்த பொருட்கள். குவாரி (quarrying) சார்ந்த சுற்றுச்சூழல் பிரச்சினைகளைத் தவிர்க்க பிளாஸ்டிக் மற்றும் கான்கிரீட் மறுசுழற்சி செய்யப்படுகிறது.", action: { label: "பொருட்களை ஆராயுங்கள்", tabIndex: 2 } },
+              cost: { text: "சாதாரண வீடு ₹1,900-₹2,500/ச.அடி செலவாகும். பசுமை வீடு ₹2,200-₹2,900/ச.அடி ஆகும். இது 5-8 ஆண்டுகளில் மின்சார சேமிப்பு மூலம் செலவை ஈடுசெய்கிறது!", action: { label: "விலை மதிப்பீட்டாளர்", tabIndex: 1 } },
+              tech: { text: "சுற்றுச்சூழல் தொழில்நுட்பங்களில் எலிப் பொறி பந்தம் (Rat Trap Bond), கேவிட்டி சுவர்கள், மற்றும் பில்லர் ஸ்லாப் (Filler Slabs) அடங்கும். கதவுகள் மற்றும் நீர் தொட்டிகளுக்கு பெரோ சிமென்ட் பயன்படுத்தப்படுகிறது.", action: { label: "தொழில்நுட்பங்களை பார்க்க", tabIndex: 1 } },
+              solar: { text: "கட்டிடங்களில் சூரிய சக்தியின் பயன்பாடு முக்கியமானது. புவி வெப்பமடைதலைக் குறைக்க இயற்கை வழியில் வெப்பமாக்கல் மற்றும் சூரிய ஒளி பேனல்களை நாங்கள் பயன்படுத்துகிறோம்.", action: { label: "சூரிய சக்தி திட்டங்கள்", tabIndex: 3 } },
+              environment: { text: "வழக்கமான கட்டுமானம் புவி வெப்பமடைதலுக்கு காரணமாகிறது. நாங்கள் மறுசுழற்சி செய்யப்பட்ட பொருட்கள் மற்றும் குறைந்த ஆற்றல் கொண்ட வடிவமைப்பை பயன்படுத்துகிறோம்.", action: { label: "ஏன் பசுமை கட்டிடம்?", tabIndex: 0 } },
+              default: { text: "கேள்விக்கு நன்றி! பசுமை பொருட்கள், LEED/GRIHA சான்றிதழ்கள், செலவு மதிப்பீடுகள் மற்றும் பெரோ சிமென்ட் தொழில்நுட்பம் தொடர்பான கேள்விகளுக்கு என்னால் சிறப்பாக பதிலளிக்க முடியும். இவற்றில் ஒன்றைப் பற்றி கேட்க முடியுமா?", action: null }
+            }
+          }
+        };
+
+        // --- SEPARATED TAB COMPONENTS ---
+        
+        const HomeTab = ({ t, lang, handleTabChange }) => {
+          return (
+            <div className="animate-in pb-10">
+              <div className="bg-green-700 rounded-3xl p-6 sm:p-10 md:p-16 text-white shadow-xl mb-12 sm:mb-20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
+                  <IconFill name="leaf" size={400} />
+                </div>
+                <div className="relative z-10 max-w-3xl">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">{t.heroTitle}</h1>
+                  <p className="text-base sm:text-lg md:text-xl text-green-100 mb-6 sm:mb-8">{t.heroSub}</p>
+                  <button onClick={() => handleTabChange(1)} className="bg-white text-green-800 px-6 sm:px-8 py-3 sm:py-4 rounded-full font-bold hover:bg-green-50 transition-colors shadow-lg w-full sm:w-auto text-center flex items-center justify-center gap-2">
+                    {lang === 'en' ? 'Explore Services' : 'சேவைகளை ஆராய்க'} <Icon name="arrow-right" size={20} />
+                  </button>
+                </div>
+              </div>
+
+              {/* INFINITE MARQUEE: PROJECTS */}
+              <div className="mb-16 sm:mb-24 overflow-hidden">
+                <div className="flex items-center gap-3 px-4 mb-6">
+                  <IconFill name="briefcase" className="text-green-600" size={28} />
+                  <h2 className="text-2xl sm:text-3xl font-bold text-stone-800">{t.homeProjectsTitle}</h2>
+                </div>
+                <div className="marquee-container w-full overflow-hidden relative">
+                   <div className="absolute top-0 left-0 w-8 sm:w-16 h-full bg-gradient-to-r from-stone-50 to-transparent z-10 pointer-events-none"></div>
+                   <div className="absolute top-0 right-0 w-8 sm:w-16 h-full bg-gradient-to-l from-stone-50 to-transparent z-10 pointer-events-none"></div>
+                   
+                   <div className="flex w-max animate-marquee-left px-4 sm:px-8 pb-8 pt-4 gap-6">
+                     {[...t.projectItems, ...t.projectItems].map((proj, idx) => (
+                        <div key={idx} onClick={() => handleTabChange(3)} className="w-[85vw] sm:w-80 rounded-2xl overflow-hidden shadow-md border border-stone-200 cursor-pointer group shrink-0 bg-white hover:shadow-xl transition-shadow">
+                          <div className="h-48 sm:h-40 relative overflow-hidden">
+                            <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute top-2 left-2 bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                              <IconFill name="star" size={12} className="text-yellow-300"/> {proj.rating.split('&')[0]}
+                            </div>
+                          </div>
+                          <div className="p-5 sm:p-4">
+                            <h3 className="font-bold text-stone-800 truncate mb-1 group-hover:text-green-700 transition-colors">{proj.title}</h3>
+                            <p className="text-xs text-stone-500 flex items-center gap-1"><IconFill name="map-pin" size={12}/> {proj.location}</p>
+                          </div>
+                        </div>
+                     ))}
+                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center px-4 mb-16 sm:mb-24">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-stone-800 mb-4">{t.whyGreenTitle}</h2>
+                  <p className="text-sm sm:text-base text-stone-600 mb-6 leading-relaxed">{t.whyGreenDesc}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    {t.benefits.map((benefit, idx) => (
+                      <div key={idx} className="flex items-center space-x-3 bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-stone-100">
+                        <IconFill name="check-circle" className="text-green-600 shrink-0" size={20} />
+                        <span className="font-medium text-sm sm:text-base text-stone-700">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-stone-200 rounded-3xl h-64 sm:h-80 relative overflow-hidden flex items-center justify-center mt-6 lg:mt-0 shadow-inner">
+                   <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#16a34a_2px,transparent_2px)] [background-size:20px_20px]"></div>
+                   <div className="text-center z-10 p-6 bg-white/70 backdrop-blur-md rounded-3xl border border-white/50 shadow-lg">
+                      <IconFill name="leaf" size={64} className="text-green-600 mx-auto mb-3 sm:w-16 sm:h-16" />
+                      <h3 className="text-xl sm:text-2xl font-bold text-green-900 mb-1">EcoBuild Concept</h3>
+                      <p className="text-xs font-semibold text-stone-600 uppercase tracking-widest">{lang === 'en' ? 'Sustainable Future' : 'நிலையான எதிர்காலம்'}</p>
+                   </div>
+                </div>
+              </div>
+
+              {/* INFINITE MARQUEE: MATERIALS */}
+              <div className="mb-10 overflow-hidden">
+                <div className="flex items-center justify-end gap-3 px-4 mb-6">
+                  <h2 className="text-2xl sm:text-3xl font-bold text-stone-800 text-right">{t.homeMaterialsTitle}</h2>
+                  <IconFill name="cube" className="text-green-600" size={28} />
+                </div>
+                <div className="marquee-container w-full overflow-hidden relative">
+                   <div className="absolute top-0 left-0 w-8 sm:w-16 h-full bg-gradient-to-r from-stone-50 to-transparent z-10 pointer-events-none"></div>
+                   <div className="absolute top-0 right-0 w-8 sm:w-16 h-full bg-gradient-to-l from-stone-50 to-transparent z-10 pointer-events-none"></div>
+                   
+                   <div className="flex w-max animate-marquee-right px-4 sm:px-8 pb-8 pt-4 gap-6">
+                     {[...t.materialItems, ...t.materialItems].map((mat, idx) => (
+                        <div key={idx} onClick={() => handleTabChange(2)} className="w-[85vw] sm:w-72 rounded-2xl overflow-hidden shadow-sm border border-stone-200 cursor-pointer group shrink-0 bg-white flex items-center p-3 sm:p-2 gap-3 hover:shadow-md transition-shadow">
+                          <div className="h-20 w-20 sm:h-20 sm:w-20 rounded-xl overflow-hidden shrink-0 shadow-sm">
+                            <img loading="lazy" src={mat.img} alt={mat.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-stone-800 text-sm truncate mb-1 group-hover:text-green-700 transition-colors">{mat.title}</h3>
+                            <p className="text-xs text-stone-500 line-clamp-2">{mat.desc}</p>
+                          </div>
+                        </div>
+                     ))}
+                   </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const ServicesTab = ({ t, lang }) => {
+          const [budget, setBudget] = useState(2500);
+          return (
+            <div className="animate-in px-2 sm:px-4">
+              <div className="text-center mb-10 sm:mb-16">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-stone-800 mb-4 sm:mb-6">{t.servicesTitle}</h2>
+                <p className="text-sm sm:text-base md:text-lg text-stone-600 max-w-3xl mx-auto leading-relaxed">{t.servicesSub}</p>
+                <div className="w-16 sm:w-24 h-1.5 bg-green-500 mx-auto rounded-full mt-6 sm:mt-8"></div>
+              </div>
+
+              <div className="space-y-8 sm:space-y-12">
+                <div className="bg-white rounded-3xl shadow-lg border border-stone-100 overflow-hidden flex flex-col lg:flex-row hover:shadow-xl transition-shadow">
+                  <div className="bg-green-50 p-8 lg:p-12 lg:w-2/5 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-stone-100">
+                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                      <Icon name="globe" size={36} className="sm:text-[40px]" />
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-4">{t.service1Title}</h3>
+                    <p className="text-stone-600 leading-relaxed text-sm sm:text-base">{t.service1Desc}</p>
+                  </div>
+                  <div className="p-8 lg:p-12 lg:w-3/5">
+                    <h4 className="text-sm font-bold text-green-600 uppercase tracking-wider mb-6">Key Deliverables</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      {t.service1Features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <IconFill name="check-circle" size={20} className="text-green-500 shrink-0 mt-0.5" />
+                          <span className="text-stone-700 text-sm sm:text-base font-medium">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-lg border border-stone-100 overflow-hidden flex flex-col lg:flex-row-reverse hover:shadow-xl transition-shadow">
+                  <div className="bg-orange-50 p-8 lg:p-12 lg:w-2/5 flex flex-col justify-center border-b lg:border-b-0 lg:border-l border-stone-100">
+                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-orange-500 text-white rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                      <IconFill name="sun" size={36} className="sm:text-[40px]" />
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-4">{t.service2Title}</h3>
+                    <p className="text-stone-600 leading-relaxed text-sm sm:text-base">{t.service2Desc}</p>
+                  </div>
+                  <div className="p-8 lg:p-12 lg:w-3/5">
+                    <h4 className="text-sm font-bold text-orange-600 uppercase tracking-wider mb-6">Design Strategies</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      {t.service2Features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <IconFill name="check-circle" size={20} className="text-orange-500 shrink-0 mt-0.5" />
+                          <span className="text-stone-700 text-sm sm:text-base font-medium">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-lg border border-stone-100 overflow-hidden flex flex-col lg:flex-row hover:shadow-xl transition-shadow">
+                  <div className="bg-blue-50 p-8 lg:p-12 lg:w-2/5 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-stone-100">
+                     <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-600 text-white rounded-2xl flex items-center justify-center mb-6 shadow-md">
+                      <IconFill name="gear" size={36} className="sm:text-[40px]" />
+                    </div>
+                    <h3 className="text-2xl sm:text-3xl font-bold text-stone-800 mb-4">{t.service3Title}</h3>
+                    <p className="text-stone-600 leading-relaxed text-sm sm:text-base">{t.service3Desc}</p>
+                  </div>
+                  <div className="p-8 lg:p-12 lg:w-3/5">
+                    <h4 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-6">Methodologies Used</h4>
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                      {t.service3Features.map((feature, idx) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <IconFill name="check-circle" size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                          <span className="text-stone-700 text-sm sm:text-base font-medium">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-20 sm:mt-24 mb-10">
+                <div className="text-center mb-10 sm:mb-12">
+                  <div className="w-16 h-16 bg-stone-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <Icon name="calculator" size={32} />
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-stone-800 mb-4 sm:mb-6">{t.packagesTitle}</h2>
+                  <p className="text-sm sm:text-base md:text-lg text-stone-600 max-w-2xl mx-auto leading-relaxed">{t.packagesSub}</p>
+                </div>
+
+                <div className="bg-white rounded-3xl shadow-xl border border-stone-200 overflow-hidden max-w-5xl mx-auto">
+                  <div className="bg-stone-50 p-8 sm:p-10 border-b border-stone-200">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                      <label className="text-lg font-bold text-stone-700 flex items-center gap-2">
+                        <Icon name="currency-inr" size={20} className="text-green-600" /> {t.budgetLabel}
+                      </label>
+                      <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-stone-200 text-2xl font-black text-green-700">
+                        {t.budgetPrice} {budget}
+                      </div>
+                    </div>
+                    <input type="range" min="1900" max="4000" step="50" value={budget} onChange={(e) => setBudget(Number(e.target.value))} className="w-full h-3 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-green-600 hover:accent-green-700 transition-all"/>
+                    <div className="flex justify-between text-xs sm:text-sm font-bold text-stone-400 mt-3 px-1">
+                      <span>{t.budgetPrice} 1,900</span>
+                      <span>{t.budgetPrice} 4,000+</span>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const currentPackage = t.packages.find(p => budget >= p.min && budget <= p.max) || t.packages[t.packages.length - 1];
+                    return (
+                      <div className="p-8 sm:p-10 bg-gradient-to-br from-white to-stone-50 animate-in" key={currentPackage.name}>
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                          <div>
+                            <span className="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block border border-green-200">{currentPackage.badge}</span>
+                            <h3 className="text-3xl sm:text-4xl font-black text-stone-800 flex items-center gap-3">
+                              <IconFill name="package" className="text-green-600" size={32} /> {currentPackage.name}
+                            </h3>
+                          </div>
+                          <div className="bg-green-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-green-600/30 text-center">
+                            <p className="text-xs font-semibold uppercase opacity-80 mb-1">{lang === 'en' ? 'Estimated Range' : 'மதிப்பிடப்பட்ட வரம்பு'}</p>
+                            <p className="text-xl font-bold">{t.budgetPrice}{currentPackage.min} - {t.budgetPrice}{currentPackage.max}</p>
+                          </div>
+                        </div>
+
+                        <p className="text-stone-600 text-sm sm:text-base leading-relaxed mb-8 border-l-4 border-stone-300 pl-4">{currentPackage.desc}</p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                          <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm">
+                            <h4 className="flex items-center gap-2 font-bold text-green-700 mb-4 text-lg border-b border-green-50 pb-3">
+                              <IconFill name="cube" size={20} /> {lang === 'en' ? 'Included Materials' : 'உள்ளடக்கிய பொருட்கள்'}
+                            </h4>
+                            <ul className="space-y-3">
+                              {currentPackage.materials.map((mat, i) => (
+                                <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-stone-700 font-medium"><IconFill name="check-circle" className="text-green-500 shrink-0 mt-0.5" size={18} /> {mat}</li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          <div className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm">
+                            <h4 className="flex items-center gap-2 font-bold text-blue-700 mb-4 text-lg border-b border-blue-50 pb-3">
+                              <IconFill name="cpu" size={20} /> {lang === 'en' ? 'Building Technologies' : 'கட்டுமான தொழில்நுட்பங்கள்'}
+                            </h4>
+                            <ul className="space-y-3">
+                              {currentPackage.tech.map((techItem, i) => (
+                                <li key={i} className="flex items-start gap-3 text-sm sm:text-base text-stone-700 font-medium"><IconFill name="check-circle" className="text-blue-500 shrink-0 mt-0.5" size={18} /> {techItem}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const MaterialsTab = ({ t, lang }) => {
+          const [expandedMat, setExpandedMat] = useState(null);
+          const toggleMat = (idx) => { if (expandedMat === idx) setExpandedMat(null); else setExpandedMat(idx); };
+
+          return (
+            <div className="animate-in px-2 sm:px-4">
+               <div className="text-center mb-8 sm:mb-12">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-stone-800 mb-3 sm:mb-4">{t.materialsTitle}</h2>
+                <p className="text-sm sm:text-base text-stone-600 max-w-2xl mx-auto">{t.materialsDesc}</p>
+                <div className="w-16 sm:w-24 h-1 bg-green-500 mx-auto rounded-full mt-4 sm:mt-6"></div>
+              </div>
+
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200 rounded-3xl p-6 sm:p-10 mb-10 sm:mb-16 shadow-md relative overflow-hidden">
+                <div className="absolute -right-10 -top-10 opacity-10">
+                  <Icon name="currency-inr" size={200} />
+                </div>
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10">
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-emerald-100 flex-1 w-full text-center">
+                    <h4 className="text-sm font-bold text-stone-500 uppercase mb-2">Conventional Build</h4>
+                    <p className="text-2xl sm:text-3xl font-black text-stone-800">₹1,900 - ₹2,500</p>
+                    <p className="text-sm text-stone-500">per sq.ft</p>
+                  </div>
+                  <div className="hidden md:flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-green-600/30">VS</div>
+                  </div>
+                  <div className="bg-green-600 p-4 sm:p-6 rounded-2xl shadow-lg border border-green-500 flex-1 w-full text-center text-white transform md:scale-105">
+                    <div className="absolute -top-3 -right-3 bg-orange-500 text-white text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-md animate-pulse">ROI in 5-8 Yrs!</div>
+                    <h4 className="text-sm font-bold text-green-100 uppercase mb-2">Green Build</h4>
+                    <p className="text-2xl sm:text-3xl font-black">₹2,200 - ₹2,900</p>
+                    <p className="text-sm text-green-200">per sq.ft</p>
+                  </div>
+                </div>
+                <div className="mt-8 text-center md:text-left">
+                  <h3 className="text-xl font-bold text-stone-800 mb-2">{t.costConstructionTitle}</h3>
+                  <p className="text-stone-700 text-sm sm:text-base leading-relaxed">{t.costConstructionDesc}</p>
+                </div>
+              </div>
+
+              <div className="mb-12 sm:mb-16">
+                <div className="text-center mb-6 sm:mb-8">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-stone-800 mb-2 sm:mb-3">{t.compareTitle}</h3>
+                  <p className="text-sm sm:text-base text-stone-600 max-w-2xl mx-auto">{t.compareDesc}</p>
+                </div>
+
+                <div className="hidden lg:block bg-white rounded-3xl shadow-md border border-stone-200 overflow-hidden">
+                  <div className="grid grid-cols-4 bg-stone-100 p-5 font-bold text-stone-700 border-b border-stone-200">
+                    <div>{t.compareHeaders[0]}</div>
+                    <div className="text-red-600 flex items-center gap-2"><Icon name="x" size={18} /> {t.compareHeaders[1]}</div>
+                    <div className="text-green-600 flex items-center gap-2"><IconFill name="check-circle" size={18} /> {t.compareHeaders[2]}</div>
+                    <div>{t.compareHeaders[3]}</div>
+                  </div>
+                  <div className="divide-y divide-stone-100">
+                    {t.comparisons.map((comp, idx) => (
+                      <div key={idx} className="grid grid-cols-4 p-5 hover:bg-stone-50 transition-colors items-center text-sm">
+                        <div className="font-bold text-stone-800">{comp.element}</div>
+                        <div className="text-stone-600">{comp.conv}</div>
+                        <div className="font-semibold text-green-700 bg-green-50 p-2 rounded-lg border border-green-100 inline-block w-fit">{comp.green}</div>
+                        <div className="text-stone-600">{comp.benefit}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="lg:hidden space-y-4">
+                  {t.comparisons.map((comp, idx) => (
+                    <div key={idx} className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 flex flex-col gap-3">
+                      <h4 className="font-bold text-stone-800 text-lg border-b border-stone-100 pb-2">{comp.element}</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div><span className="text-[10px] sm:text-xs font-bold text-red-500 uppercase flex items-center gap-1 mb-1"><Icon name="x" size={12} /> {t.compareHeaders[1]}</span><p className="text-sm text-stone-600">{comp.conv}</p></div>
+                        <div><span className="text-[10px] sm:text-xs font-bold text-green-600 uppercase flex items-center gap-1 mb-1"><IconFill name="check-circle" size={12} /> {t.compareHeaders[2]}</span><p className="text-sm font-semibold text-green-700">{comp.green}</p></div>
+                      </div>
+                      <div className="mt-2 bg-stone-50 p-3 rounded-xl border border-stone-100">
+                        <span className="text-[10px] sm:text-xs font-bold text-stone-500 uppercase block mb-1">{t.compareHeaders[3]}</span><p className="text-xs sm:text-sm text-stone-700">{comp.benefit}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center mb-8">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-stone-800 mb-2 sm:mb-3">{lang === 'en' ? 'Material Deep Dive' : 'பொருட்கள் பற்றிய விரிவான பார்வை'}</h3>
+                <p className="text-sm sm:text-base text-stone-600 max-w-2xl mx-auto">{lang === 'en' ? 'Explore the strengths, weaknesses, and structural properties of green materials.' : 'பசுமை பொருட்களின் நன்மைகள், குறைபாடுகள் மற்றும் கட்டமைப்பு பண்புகளை ஆராயுங்கள்.'}</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                {t.materialItems.map((mat, idx) => {
+                  const isExpanded = expandedMat === idx;
+                  return (
+                    <div key={idx} className={`bg-white rounded-3xl overflow-hidden shadow-md border border-stone-100 transition-all duration-300 ${isExpanded ? 'ring-2 ring-green-500 shadow-xl' : 'hover:shadow-lg'}`}>
+                      <div className="cursor-pointer group flex flex-col sm:flex-row" onClick={() => toggleMat(idx)}>
+                        <div className="relative h-48 sm:h-auto sm:w-2/5 overflow-hidden shrink-0">
+                          <img loading="lazy" src={mat.img} alt={mat.title} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-stone-900/10"></div>
+                          <div className="absolute bottom-3 left-3 sm:hidden"><span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md backdrop-blur-md bg-opacity-90">{mat.price}</span></div>
+                        </div>
+                        
+                        <div className="p-5 sm:p-6 flex flex-col justify-center w-full relative">
+                          <div className="hidden sm:block absolute top-4 right-4"><span className="bg-green-100 text-green-800 border border-green-200 text-xs font-bold px-3 py-1 rounded-full">{mat.price}</span></div>
+                          <h4 className="text-xl font-bold text-stone-800 mb-2 pr-10">{mat.title}</h4>
+                          <p className="text-sm text-stone-600 leading-relaxed mb-4">{mat.desc}</p>
+                          <button className="flex items-center gap-2 text-green-600 font-bold text-sm mt-auto self-start bg-green-50 px-4 py-2 rounded-lg hover:bg-green-100 transition-colors">
+                            {isExpanded ? (lang === 'en' ? 'Show Less' : 'குறைவாகக் காட்டு') : (lang === 'en' ? 'Learn More' : 'மேலும் அறிக')}
+                            {isExpanded ? <Icon name="caret-up" size={16} /> : <Icon name="caret-down" size={16} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {isExpanded && (
+                        <div className="p-6 border-t border-stone-100 bg-stone-50 animate-in">
+                          <p className="text-sm text-stone-700 leading-relaxed mb-6 italic border-l-4 border-stone-300 pl-4">{mat.fullDesc}</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="bg-white p-4 rounded-2xl border border-green-100 shadow-sm">
+                              <h5 className="flex items-center gap-2 font-bold text-green-700 mb-3 border-b border-green-50 pb-2"><IconFill name="thumbs-up" size={18} /> {lang === 'en' ? 'Strengths' : 'நன்மைகள்'}</h5>
+                              <ul className="space-y-2">{mat.strengths.map((s, i) => (<li key={i} className="text-xs sm:text-sm text-stone-600 flex items-start gap-2"><span className="text-green-500 mt-0.5">•</span> {s}</li>))}</ul>
+                            </div>
+                            <div className="bg-white p-4 rounded-2xl border border-red-100 shadow-sm">
+                              <h5 className="flex items-center gap-2 font-bold text-red-700 mb-3 border-b border-red-50 pb-2"><IconFill name="thumbs-down" size={18} /> {lang === 'en' ? 'Limitations' : 'குறைபாடுகள்'}</h5>
+                              <ul className="space-y-2">{mat.weaknesses.map((w, i) => (<li key={i} className="text-xs sm:text-sm text-stone-600 flex items-start gap-2"><span className="text-red-400 mt-0.5">•</span> {w}</li>))}</ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        };
+
+        const ProjectsTab = ({ t, lang }) => {
+          const [selectedIdx, setSelectedIdx] = useState(null);
+
+          if (selectedIdx !== null) {
+            const proj = t.projectItems[selectedIdx];
+            return (
+              <div className="animate-in px-2 sm:px-4 max-w-6xl mx-auto pb-10">
+                <button onClick={() => { setSelectedIdx(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex items-center gap-2 text-stone-500 hover:text-green-600 font-bold mb-6 transition-colors bg-white px-5 py-2.5 rounded-full shadow-sm border border-stone-200">
+                  <Icon name="arrow-left" size={20} /> {lang === 'en' ? 'Back to Projects' : 'திட்டங்களுக்குத் திரும்பு'}
+                </button>
+                
+                <div className="bg-white rounded-3xl overflow-hidden shadow-2xl border border-stone-100">
+                  <div className="h-64 sm:h-96 w-full relative">
+                    <img src={proj.image} alt={proj.title} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/40 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-6 sm:p-10 w-full">
+                      <div className="flex flex-wrap items-center gap-3 mb-4">
+                        <span className="bg-green-500 text-white text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg"><IconFill name="star" size={14} className="text-yellow-300" /> {proj.rating}</span>
+                        <span className="bg-white/20 backdrop-blur-md text-white border border-white/30 text-xs sm:text-sm font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow-lg"><IconFill name="map-pin" size={14} /> {proj.location}</span>
+                      </div>
+                      <h2 className="text-3xl sm:text-5xl font-black text-white leading-tight drop-shadow-md">{proj.title}</h2>
+                    </div>
+                  </div>
+
+                  <div className="p-6 sm:p-10 flex flex-col lg:flex-row gap-10 sm:gap-12">
+                    <div className="lg:w-2/3 space-y-10">
+                      <div>
+                        <h3 className="text-2xl font-bold text-stone-800 mb-4 flex items-center gap-2 border-b-2 border-green-500 pb-2 inline-flex">{lang === 'en' ? 'Project Overview' : 'திட்ட கண்ணோட்டம்'}</h3>
+                        <p className="text-stone-600 leading-relaxed sm:text-lg">{proj.fullDescription}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2 border-b-2 border-green-500 pb-2 inline-flex">{lang === 'en' ? 'Sustainability Highlights' : 'நிலைத்தன்மை சிறப்பம்சங்கள்'}</h3>
+                        <ul className="space-y-4">
+                          {proj.highlights.map((item, i) => (
+                            <li key={i} className="flex items-start gap-4 bg-stone-50 p-5 rounded-2xl border border-stone-100 hover:shadow-md transition-shadow">
+                              <IconFill name="check-circle" size={24} className="text-green-500 shrink-0 mt-0.5" />
+                              <span className="text-stone-700 font-medium sm:text-lg">{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="lg:w-1/3 space-y-6">
+                      <div className="bg-green-50 p-6 sm:p-8 rounded-3xl border border-green-100 space-y-6 shadow-sm">
+                        <h4 className="font-bold text-green-800 uppercase tracking-wider text-sm mb-2">{lang === 'en' ? 'Quick Facts' : 'விரைவான உண்மைகள்'}</h4>
+                        <div className="flex items-center gap-4 text-stone-700 bg-white p-4 rounded-2xl shadow-sm"><div className="bg-green-100 p-2.5 rounded-xl shrink-0"><IconFill name="calendar" size={20} className="text-green-600" /></div><div><p className="text-xs text-stone-500 font-medium uppercase tracking-wide">{lang === 'en' ? 'Completed' : 'முடிந்த ஆண்டு'}</p><p className="font-bold text-stone-800">{proj.year}</p></div></div>
+                        <div className="flex items-center gap-4 text-stone-700 bg-white p-4 rounded-2xl shadow-sm"><div className="bg-blue-100 p-2.5 rounded-xl shrink-0"><IconFill name="user" size={20} className="text-blue-600" /></div><div><p className="text-xs text-stone-500 font-medium uppercase tracking-wide">{lang === 'en' ? 'Architect' : 'கட்டிடக்கலைஞர்'}</p><p className="font-bold text-stone-800">{proj.architect}</p></div></div>
+                      </div>
+
+                      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="flex items-center gap-2 text-stone-800 font-bold mb-4 text-lg"><IconFill name="layers" size={22} className="text-green-600" /> {lang === 'en' ? 'Materials' : 'பொருட்கள்'}</h4>
+                        <p className="text-sm sm:text-base text-stone-600 leading-relaxed">{proj.materials}</p>
+                      </div>
+                      
+                      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="flex items-center gap-2 text-stone-800 font-bold mb-4 text-lg"><IconFill name="cpu" size={22} className="text-blue-600" /> {lang === 'en' ? 'Technology' : 'தொழில்நுட்பம்'}</h4>
+                        <p className="text-sm sm:text-base text-stone-600 leading-relaxed">{proj.tech}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-6 sm:p-10 border-t border-stone-100 bg-stone-50">
+                    <h3 className="text-2xl font-bold text-stone-800 mb-6 flex items-center gap-2"><IconFill name="image" size={24} className="text-stone-500" /> {lang === 'en' ? 'Project Gallery' : 'திட்ட கேலரி'}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                      {proj.gallery.map((imgUrl, i) => (
+                        <div key={i} className="h-48 sm:h-64 rounded-2xl overflow-hidden shadow-sm border border-stone-200 group">
+                          <img loading="lazy" src={imgUrl} alt={`Gallery ${i}`} className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="animate-in px-2 sm:px-4 max-w-6xl mx-auto">
+              <div className="text-center mb-10 sm:mb-16">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-stone-800 mb-4">{t.projectsTitle}</h2>
+                <p className="text-sm sm:text-base md:text-lg text-stone-600 max-w-3xl mx-auto leading-relaxed">{t.projectsDesc}</p>
+                <div className="w-16 sm:w-24 h-1.5 bg-green-500 mx-auto rounded-full mt-6"></div>
+              </div>
+
+              <div className="space-y-10 sm:space-y-16">
+                {t.projectItems.map((proj, idx) => (
+                  <div key={idx} className="bg-white rounded-3xl overflow-hidden shadow-xl border border-stone-100 flex flex-col lg:flex-row group hover:shadow-2xl transition-shadow duration-300">
+                    <div className="lg:w-2/5 h-64 sm:h-80 lg:h-auto relative overflow-hidden shrink-0">
+                      <img loading="lazy" src={proj.image} alt={proj.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent to-stone-900/10 lg:bg-gradient-to-t lg:from-stone-900/20 lg:to-transparent"></div>
+                      <div className="absolute top-4 left-4 bg-green-600/90 backdrop-blur-md text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full shadow-lg flex items-center gap-1.5 border border-green-400/30">
+                         <IconFill name="star" size={16} className="text-yellow-300" /> {proj.rating}
+                      </div>
+                    </div>
+
+                    <div className="p-6 sm:p-8 lg:p-10 lg:w-3/5 flex flex-col justify-center bg-stone-50/50">
+                      <div className="flex items-center text-stone-500 text-xs sm:text-sm mb-3 sm:mb-4 uppercase tracking-wider font-bold">
+                         <IconFill name="map-pin" size={16} className="mr-1.5 text-green-600" /> {proj.location}
+                      </div>
+                      <h3 className="text-2xl sm:text-3xl font-black text-stone-800 mb-3 sm:mb-4">{proj.title}</h3>
+                      <p className="text-stone-600 mb-6 sm:mb-8 leading-relaxed text-sm sm:text-base border-l-4 border-green-500 pl-4 bg-white py-2 shadow-sm rounded-r-lg">{proj.description}</p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 mt-auto">
+                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-100">
+                            <h4 className="flex items-center gap-2 text-green-700 font-bold mb-3 text-sm sm:text-base"><IconFill name="layers" size={20} className="bg-green-100 p-1 rounded-md" /> {lang === 'en' ? 'Materials Used' : 'பயன்படுத்தப்பட்ட பொருட்கள்'}</h4>
+                            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed line-clamp-3">{proj.materials}</p>
+                         </div>
+                         <div className="bg-white p-4 rounded-2xl shadow-sm border border-stone-100">
+                            <h4 className="flex items-center gap-2 text-blue-700 font-bold mb-3 text-sm sm:text-base"><IconFill name="cpu" size={20} className="bg-blue-100 p-1 rounded-md" /> {lang === 'en' ? 'Green Technologies' : 'பசுமை தொழில்நுட்பங்கள்'}</h4>
+                            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed line-clamp-3">{proj.tech}</p>
+                         </div>
+                      </div>
+
+                      <button onClick={() => { setSelectedIdx(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="mt-8 w-full bg-stone-900 hover:bg-green-700 text-white font-bold py-3.5 sm:py-4 rounded-xl transition-colors shadow-md flex items-center justify-center gap-2">
+                        {lang === 'en' ? 'View Full Project Details' : 'முழு திட்ட விவரங்களைக் காண்க'} <Icon name="arrow-right" size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        };
+
+        const ContactTab = ({ t, lang }) => (
+          <div className="animate-in px-2 sm:px-4">
+            <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+              <div className="bg-green-800 text-white p-6 sm:p-10 md:w-2/5 flex flex-col justify-between">
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">{t.contactTitle}</h2>
+                  <p className="text-sm sm:text-base text-green-200 mb-8 sm:mb-12">{t.contactDesc}</p>
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="flex items-center gap-3 sm:gap-4"><div className="bg-green-700 p-2.5 sm:p-3 rounded-full shrink-0"><IconFill name="map-pin" size={20} /></div><span className="text-sm sm:text-base break-words">{t.address}</span></div>
+                    <div className="flex items-center gap-3 sm:gap-4"><div className="bg-green-700 p-2.5 sm:p-3 rounded-full shrink-0"><IconFill name="phone" size={20} /></div><span className="text-sm sm:text-base break-words">{t.phone}</span></div>
+                    <div className="flex items-center gap-3 sm:gap-4"><div className="bg-green-700 p-2.5 sm:p-3 rounded-full shrink-0"><IconFill name="envelope-simple" size={20} /></div><span className="text-sm sm:text-base break-all">{t.email}</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-10 md:w-3/5">
+                <form className="space-y-4 sm:space-y-6" onSubmit={(e) => e.preventDefault()}>
+                  <div><label className="block text-stone-700 font-medium mb-1.5 sm:mb-2 text-sm sm:text-base">{t.namePlaceholder}</label><input type="text" className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 sm:p-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow" placeholder={t.namePlaceholder} /></div>
+                  <div><label className="block text-stone-700 font-medium mb-1.5 sm:mb-2 text-sm sm:text-base">{t.emailPlaceholder}</label><input type="email" className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 sm:p-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow" placeholder={t.emailPlaceholder} /></div>
+                  <div><label className="block text-stone-700 font-medium mb-1.5 sm:mb-2 text-sm sm:text-base">{t.messagePlaceholder}</label><textarea rows="4" className="w-full bg-stone-50 border border-stone-200 rounded-xl p-3 sm:p-4 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-green-500 transition-shadow" placeholder={t.messagePlaceholder}></textarea></div>
+                  <button className="w-full bg-green-600 text-white font-bold py-3 sm:py-4 rounded-xl hover:bg-green-700 transition-colors shadow-lg text-sm sm:text-base">{t.submitBtn}</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        );
+
+        // --- MAIN APP COMPONENT ---
+        function App() {
+          const [lang, setLang] = useState('en');
+          const [activeTab, setActiveTab] = useState(0);
+          
+          const t = translations[lang];
+
+          const [isChatOpen, setIsChatOpen] = useState(false);
+          const [chatInput, setChatInput] = useState('');
+          const [chatMessages, setChatMessages] = useState([
+            { text: t.chatDefaultGreeting, isBot: true, action: null }
+          ]);
+          const chatEndRef = useRef(null);
+
+          // Chatbot logic
+          useEffect(() => {
+            setChatMessages([{ text: translations[lang].chatDefaultGreeting, isBot: true, action: null }]);
+          }, [lang]);
+
+          useEffect(() => {
+            if (chatEndRef.current) {
+              chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+            }
+          }, [chatMessages, isChatOpen]);
+
+          const handleTabChange = (index) => {
+            setActiveTab(index);
+            if(window.innerWidth < 1024) setIsChatOpen(false); 
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          };
+
+          const handleChatSubmit = (e) => {
+            e.preventDefault();
+            if (!chatInput.trim()) return;
+
+            const newMessages = [...chatMessages, { text: chatInput, isBot: false, action: null }];
+            setChatMessages(newMessages);
+            const inputLower = chatInput.toLowerCase();
+            setChatInput('');
+
+            setTimeout(() => {
+              let botResponse = t.chatResponses.default;
+              if (inputLower.match(/rating|leed|griha|breeam|green star|certificate/)) { botResponse = t.chatResponses.rating; } 
+              else if (inputLower.match(/material|stone|laterite|brick|mud block|lime pozzolana|gypsum|fiber|bamboo|recycle|plastic|aac|concrete/)) { botResponse = t.chatResponses.material; } 
+              else if (inputLower.match(/tech|wall|flemish|rat trap|cavity|ferro|filler slab|pre cast|septic/)) { botResponse = t.chatResponses.tech; } 
+              else if (inputLower.match(/cost|price|budget|rupee|cheap|expensive|package/)) { botResponse = t.chatResponses.cost; } 
+              else if (inputLower.match(/solar|sun|energy|heating|cooling/)) { botResponse = t.chatResponses.solar; } 
+              else if (inputLower.match(/global warming|environment|quarrying|pollution|emission/)) { botResponse = t.chatResponses.environment; }
+              setChatMessages(prev => [...prev, { text: botResponse.text, isBot: true, action: botResponse.action }]);
+            }, 600); 
+          };
+
+          const TabIcons = ['house', 'gear', 'cube', 'briefcase', 'phone'];
+
+          return (
+            <div className="min-h-screen bg-stone-50 font-sans text-stone-800 selection:bg-green-200 selection:text-green-900 pb-20 lg:pb-0 flex flex-col overflow-x-hidden relative">
+              
+              {/* Header */}
+              <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-stone-200 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="flex justify-between items-center h-16 sm:h-20">
+                    <div className="flex items-center gap-2 sm:gap-3 cursor-pointer" onClick={() => handleTabChange(0)}>
+                      <div className="bg-green-600 text-white p-2 sm:p-2.5 rounded-xl shadow-md shrink-0"><IconFill name="leaf" size={24} /></div>
+                      <div>
+                        <h1 className="text-xl sm:text-2xl font-black text-stone-800 tracking-tight leading-none">{t.appTitle}</h1>
+                        <p className="text-[10px] sm:text-xs font-semibold text-green-600 uppercase tracking-widest truncate max-w-[150px] sm:max-w-none">{t.consultant}</p>
+                      </div>
+                    </div>
+
+                    <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+                      {t.tabs.map((tabName, idx) => (
+                        <button key={idx} onClick={() => handleTabChange(idx)} className={`flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-full font-medium transition-all duration-200 text-sm xl:text-base ${ activeTab === idx ? 'bg-green-100 text-green-800 shadow-sm' : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900' }`}>
+                          <IconFill name={TabIcons[idx]} size={18} /> {tabName}
+                        </button>
+                      ))}
+                    </nav>
+
+                    <div className="flex items-center gap-2 sm:gap-4">
+                      <button onClick={() => setLang(lang === 'en' ? 'ta' : 'en')} className="flex items-center gap-1.5 sm:gap-2 bg-stone-100 hover:bg-stone-200 text-stone-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full font-bold text-xs sm:text-sm transition-colors border border-stone-200" title="Switch Language">
+                        <Icon name="globe" size={14} className="text-green-600" /> {lang === 'en' ? 'தமிழ்' : 'ENG'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </header>
+
+              <main className="flex-grow max-w-7xl mx-auto w-full px-2 sm:px-6 lg:px-8 py-6 sm:py-10 flex flex-col relative z-10">
+                {activeTab === 0 && <HomeTab t={t} lang={lang} handleTabChange={handleTabChange} />}
+                {activeTab === 1 && <ServicesTab t={t} lang={lang} />}
+                {activeTab === 2 && <MaterialsTab t={t} lang={lang} />}
+                {activeTab === 3 && <ProjectsTab t={t} lang={lang} />}
+                {activeTab === 4 && <ContactTab t={t} lang={lang} />}
+              </main>
+
+              {/* FOOTER */}
+              <footer className="bg-stone-900 text-stone-400 py-10 sm:py-12 text-center px-4 mt-auto mb-16 lg:mb-0 relative z-10">
+                <div className="max-w-4xl mx-auto flex flex-col items-center">
+                  <div className="flex justify-center mb-4 sm:mb-6 text-green-500 bg-stone-800 p-4 rounded-full shadow-inner"><IconFill name="leaf" size={32} /></div>
+                  <p className="text-sm sm:text-base text-stone-300 font-bold mb-6">{t.footerText}</p>
+                  <div className="w-24 h-px bg-stone-700 mb-6"></div>
+                  <div className="space-y-2 text-xs sm:text-sm md:text-base">
+                     <p><span className="text-stone-500">{lang === 'en' ? 'Created by:' : 'உருவாக்கியவர்:'}</span> <span className="text-white font-bold tracking-wide">SATHISH S</span></p>
+                     <p><span className="text-stone-500">{lang === 'en' ? 'Email:' : 'மின்னஞ்சல்:'}</span> <a href="mailto:sathish1204js@gmail.com" className="text-green-400 hover:text-green-300 transition-colors ml-1">sathish1204js@gmail.com</a></p>
+                     <p className="text-stone-400 font-semibold mt-2 pt-2">ANNAPOORANA ENGINEERING COLLEGE</p>
+                     <p className="text-stone-500">Salem</p>
+                  </div>
+                </div>
+              </footer>
+
+              {/* Mobile Nav */}
+              <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)] z-40 transition-transform pb-safe">
+                <div className="flex justify-around items-center h-16 sm:h-20 px-1 sm:px-2">
+                  {t.tabs.map((tabName, idx) => (
+                    <button key={idx} onClick={() => handleTabChange(idx)} className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${ activeTab === idx ? 'text-green-600' : 'text-stone-400 hover:text-stone-600' }`}>
+                      <IconFill name={TabIcons[idx]} size={20} className={activeTab === idx ? 'scale-110 transition-transform' : ''} />
+                      <span className="text-[10px] sm:text-xs font-semibold max-w-[64px] sm:max-w-[80px] truncate w-full text-center tracking-tight">{tabName}</span>
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              {/* Chatbot */}
+              <div className="fixed bottom-20 lg:bottom-8 right-4 lg:right-8 z-50 flex flex-col items-end">
+                {isChatOpen && (
+                  <div className="bg-white w-[90vw] sm:w-96 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.3)] border border-stone-200 overflow-hidden mb-4 animate-in flex flex-col h-[65vh] sm:h-[480px]">
+                    <div className="bg-green-700 text-white p-4 flex justify-between items-center shrink-0 shadow-sm z-10">
+                      <div className="flex items-center gap-2 font-bold"><IconFill name="leaf" size={20} /> {t.chatTitle}</div>
+                      <button onClick={() => setIsChatOpen(false)} className="text-green-200 hover:text-white transition-colors bg-green-800/50 p-1 rounded-full"><Icon name="x" size={20} /></button>
+                    </div>
+                    
+                    <div className="flex-grow p-4 overflow-y-auto bg-stone-50 space-y-4">
+                      {chatMessages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.isBot ? 'justify-start' : 'justify-end'}`}>
+                          <div className={`max-w-[85%] rounded-2xl p-3.5 text-sm shadow-sm flex flex-col gap-2 ${msg.isBot ? 'bg-white border border-stone-200 text-stone-700 rounded-tl-none' : 'bg-green-600 text-white rounded-tr-none'}`}>
+                            <p className="leading-relaxed">{msg.text}</p>
+                            {msg.action && (
+                              <button onClick={() => handleTabChange(msg.action.tabIndex)} className="mt-1 flex items-center justify-center gap-1.5 self-start text-[11px] font-bold uppercase tracking-wider bg-green-100 text-green-800 px-3 py-1.5 rounded-full hover:bg-green-200 hover:scale-105 transition-all shadow-sm border border-green-200">
+                                {msg.action.label} <Icon name="arrow-right" size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    <div className="p-3 bg-white border-t border-stone-200 shrink-0">
+                      <form onSubmit={handleChatSubmit} className="flex gap-2">
+                        <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder={t.chatPlaceholder} className="flex-grow bg-stone-100 border border-stone-200 rounded-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"/>
+                        <button type="submit" className="bg-green-600 text-white p-2.5 rounded-full hover:bg-green-700 transition-colors shrink-0 shadow-md"><IconFill name="paper-plane-right" size={18} /></button>
+                      </form>
+                    </div>
+                  </div>
+                )}
+
+                <button onClick={() => setIsChatOpen(!isChatOpen)} className={`${isChatOpen ? 'bg-stone-800' : 'bg-green-600'} text-white p-4 rounded-full shadow-2xl hover:scale-105 transition-all duration-300 flex items-center justify-center border-4 border-white/20`}>
+                  {isChatOpen ? <Icon name="x" size={28} /> : <IconFill name="leaf" size={28} className={activeTab === 0 ? "animate-bounce" : "animate-pulse"} />}
+                </button>
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
